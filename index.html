@@ -875,6 +875,69 @@
             font-family: var(--serif-jp);
         }
 
+        /* ── Profile sub-mode toggle (grid / correlation) ── */
+        .profile-submode-toggle {
+            display: inline-flex;
+            gap: 0;
+            margin-bottom: 14px;
+            border: 1px solid var(--rule);
+        }
+        .submode-btn {
+            padding: 5px 14px;
+            font-family: var(--serif-jp);
+            font-size: 12px;
+            border: none;
+            background: var(--paper);
+            color: var(--ink-mute);
+            cursor: pointer;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-indent: 0.15em;
+        }
+        .submode-btn:not(:last-child) { border-right: 1px solid var(--rule); }
+        .submode-btn:hover { color: var(--vermilion); }
+        .submode-btn.active {
+            background: var(--ink);
+            color: var(--paper);
+        }
+
+        /* ── Correlation graph (人物相関図) ──────────── */
+        #correlation-wrap {
+            height: 600px;
+            border: 1px solid var(--rule);
+            background: var(--paper-soft);
+            position: relative;
+            margin-top: 4px;
+        }
+        #correlation-svg { display: block; width: 100%; height: 100%; }
+        .person-node text {
+            font-family: var(--serif-jp);
+            font-size: 12px;
+            font-weight: 700;
+            fill: var(--ink);
+            pointer-events: none;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.95), 0 0 6px rgba(255,255,255,0.7);
+            letter-spacing: 0.02em;
+        }
+        .person-link {
+            stroke: #888;
+            fill: none;
+        }
+        .correlation-legend {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(255,255,255,0.92);
+            border: 1px solid var(--rule);
+            padding: 8px 10px;
+            font-family: var(--serif-jp);
+            font-size: 10.5px;
+        }
+        .correlation-legend .row { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+        .correlation-legend .swatch {
+            width: 11px; height: 11px; border-radius: 50%;
+        }
+
         /* ── Profile detail (individual deep-dive) ───── */
         .profile-card { cursor: pointer; }
         .profile-card:hover { box-shadow: 3px 3px 0 var(--vermilion-bg); transform: translateY(-1px); }
@@ -1370,7 +1433,7 @@
             <button class="mode-btn" data-mode="newwords">ニューワード</button>
             <button class="mode-btn" data-mode="thermometer">体温計</button>
             <button class="mode-btn" data-mode="profiles">人物録</button>
-            <button class="mode-btn" data-mode="principles">方針</button>
+            <button class="mode-btn" data-mode="principles">５つの編集方針</button>
         </div>
         <div id="stats"></div>
     </div>
@@ -1574,7 +1637,37 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
         // Normalize a name by stripping all whitespace (incl. full-width 　)
         function normName(s) { return (s || '').replace(/[\s　]+/g, ''); }
 
-        // Build name -> personIndex map (normalized)
+        // Romaji initials for display (matches allPeople index order)
+        const personInitials = [
+            'A.R.',  // 朝比奈励 (Asahina Rei)
+            'K.K.',  // 倉田 憲多 (Kurata Kenta)
+            'K.A.',  // 笠井麻代 (Kasai Asayo)
+            'U.T.',  // 馬野 友之 (Umano Tomoyuki)
+            'K.N.',  // 小池信孝 (Koike Nobutaka)
+            'M.Y.',  // 馬渕雄一郎 (Mabuchi Yuichiro)
+            'N.Ma.', // 根井真美 (Nei Mami)
+            'T.D.',  // 田中 大介 (Tanaka Daisuke)
+            'U.M.',  // 浦部光俊 (Urabe Mitsutoshi)
+            'T.H.',  // 高橋仁美 (Takahashi Hitomi)
+            'M.T.',  // 松本智子 (Matsumoto Tomoko)
+            'K.M.',  // 河田桃子 (Kawata Momoko)
+            'Y.Sa.', // 湯山 聡 (Yuyama Satoshi)
+            'T.M.',  // 竹廣 克 (Takehiro Masaru)
+            'S.A.',  // 関端彰子 (Sekihata Akiko)
+            'N.H.',  // 永津洋之 (Nagatsu Hiroyuki)
+            'N.Mi.', // 新倉美菜 (Niikura Mina)
+            'H.H.',  // 平川英恵 (Hirakawa Hanae)
+            'I.K.',  // 伊藤邦彦 (Ito Kunihiko)
+            'K.Y.',  // 工藤洋子 (Kudo Yoko)
+            'H.K.',  // 帆良邦子 (Hora Kuniko)
+            'T.E.',  // 竹内瑛人 (Takeuchi Eito)
+            'Y.Sh.', // 米澤志咲 (Yonezawa Shisaki)
+            'N.Y.',  // 中村悠香 (Nakamura Yuka)
+            'S.Y.'   // 杉田裕紀 (Sugita Yuki)
+        ];
+        function pn(i) { return personInitials[i] || allPeople[i] || ''; }
+
+        // Build name -> personIndex map (normalized; uses original names)
         const nameToIdx = new Map();
         allPeople.forEach((nm, i) => nameToIdx.set(normName(nm), i));
 
@@ -1635,7 +1728,7 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
                 const opt = document.createElement('option');
                 if (m.idx >= 0) {
                     opt.value = `PERSON:${m.idx}`;
-                    opt.textContent = allPeople[m.idx];
+                    opt.textContent = pn(m.idx);
                 } else {
                     opt.value = '';
                     opt.textContent = `${m.name}（データなし）`;
@@ -1707,7 +1800,7 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
             }
             if (v.startsWith('PERSON:')) {
                 const i = parseInt(v.slice(7));
-                return { kind: 'person', set: new Set([i]), label: allPeople[i] };
+                return { kind: 'person', set: new Set([i]), label: pn(i) };
             }
             return { kind: 'all', set: null, label: null };
         }
@@ -1899,7 +1992,7 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
                 html += `<div class="newwords-section-title">${escapeHtml(data.title)}</div>`;
                 html += `<div class="newwords-grid">`;
                 newwords.forEach(w => {
-                    const byNames = w.persons.map(i => allPeople[i]).join('、');
+                    const byNames = w.persons.map(i => pn(i)).join('、');
                     html += `<div class="newword-card">`;
                     html += `<div class="newword-text">${escapeHtml(w.id)}</div>`;
                     html += `<div class="newword-by">— ${escapeHtml(byNames)}</div>`;
@@ -1970,8 +2063,25 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
             container.innerHTML = html;
         }
 
-        // ========== 個人プロフィール (dispatcher + grid + detail) ==========
+        // ========== 個人プロフィール (dispatcher + grid + detail + correlation + bipartite) ==========
         let profileDetailIdx = null;
+        let profileSubMode = 'grid';  // 'grid' | 'correlation' | 'bipartite'
+        let correlationSim = null;
+        let bipartiteSim = null;
+
+        function profileSubToggleHTML() {
+            const btn = (mode, label) => `<button class="submode-btn ${profileSubMode===mode?'active':''}" data-submode="${mode}">${label}</button>`;
+            return `<div class="profile-submode-toggle">${btn('grid','一覧')}${btn('correlation','相関図')}${btn('bipartite','語×人')}</div>`;
+        }
+        function attachSubModeHandlers() {
+            document.querySelectorAll('.submode-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    profileSubMode = btn.dataset.submode;
+                    profileDetailIdx = null;
+                    renderGraph();
+                });
+            });
+        }
         const dojoColors = {
             'やまぶき道場': '#c9a14a',
             'つゆくさ道場': '#5a8fc4',
@@ -2004,6 +2114,10 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
             }
             if (detailIdx !== null && detailIdx >= 0) {
                 renderProfileDetail(detailIdx);
+            } else if (profileSubMode === 'correlation') {
+                renderProfileCorrelation(sel);
+            } else if (profileSubMode === 'bipartite') {
+                renderProfileBipartite(sel);
             } else {
                 renderProfileGrid(sel);
             }
@@ -2042,7 +2156,7 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
                         mySet.forEach(w => { if (otherSet.has(w)) inter++; });
                         const uni = mySet.size + otherSet.size - inter;
                         const jac = uni ? (inter / uni) : 0;
-                        if (jac > maxJ) { maxJ = jac; resonator = { name: allPeople[j], jac, inter }; }
+                        if (jac > maxJ) { maxJ = jac; resonator = { name: pn(j), jac, inter }; }
                     });
                 }
 
@@ -2053,7 +2167,7 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
 
                 const dojoName = personToDojo[idx];
                 const dojoClass = dojoName ? `dojo-${getDojoSlug(dojoName)}` : '';
-                return { idx, name, dojo: dojoName, dojoClass, total: det.list.length, groupCounts: det.groupCounts, uniqueCount, resonator, rep };
+                return { idx, name: pn(idx), dojo: dojoName, dojoClass, total: det.list.length, groupCounts: det.groupCounts, uniqueCount, resonator, rep };
             });
 
             const dojoOrder = dojos.map(d => d.name);
@@ -2067,6 +2181,7 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
             let html = '<div class="ranking-eyebrow">PERSONAL PROFILES</div>';
             html += '<div class="ranking-header">個人プロフィール</div>';
             html += `<div class="ranking-sub">　25名の「読みの指紋」一覧。カードをクリックで個別ビューへ。最多共鳴相手はJaccard類似度で算出。</div>`;
+            html += profileSubToggleHTML();
             html += '<details class="info-toggle"><summary>Jaccard類似度って？</summary>';
             html += '<div class="info-body">';
             html += '共有語数 ÷ <code>(Aの語数 ＋ Bの語数 − 共有語数)</code>。たくさん選んだ人ほど有利な単純な共有数を、総量で正規化した「読みの重なり具合」の指標（0〜100%）。';
@@ -2102,6 +2217,7 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
             container.innerHTML = html;
 
             // Wire click handlers
+            attachSubModeHandlers();
             container.querySelectorAll('.profile-card').forEach(card => {
                 card.addEventListener('click', () => {
                     const i = parseInt(card.dataset.pidx);
@@ -2116,7 +2232,7 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
 
         function renderProfileDetail(idx) {
             const container = document.getElementById('ranking-view');
-            const name = allPeople[idx];
+            const name = pn(idx);
             const dojo = personToDojo[idx];
             const themeColor = dojoColors[dojo] || '#b8392a';
 
@@ -2138,7 +2254,7 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
                     mySet.forEach(w => { if (otherSet.has(w)) inter++; });
                     const uni = mySet.size + otherSet.size - inter;
                     const jac = uni ? (inter / uni) : 0;
-                    resonance.push({ idx: j, name: other, dojo: personToDojo[j], shared: inter, jac });
+                    resonance.push({ idx: j, name: pn(j), dojo: personToDojo[j], shared: inter, jac });
                 });
             }
             // Sort by Jaccard similarity (matches grid's "最多共鳴"); shared count tiebreaker
@@ -2268,6 +2384,271 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
             container.innerHTML = html;
         }
 
+
+        // ========== 人物相関図 (Person-to-person Jaccard network) ==========
+        function renderProfileCorrelation(sel) {
+            const container = document.getElementById('ranking-view');
+            document.getElementById('title-display').textContent = '個人プロフィール ／ 相関図';
+            const isFiltered = sel.kind === 'dojo';
+            const filterIdxSet = isFiltered ? sel.set : null;
+
+            // Aggregate
+            const { persPickSets } = aggregatePersonData();
+            // Build all pairs (Jaccard)
+            const pairs = [];
+            for (let i = 0; i < allPeople.length; i++) {
+                const a = persPickSets[i];
+                if (a.size === 0) continue;
+                for (let j = i+1; j < allPeople.length; j++) {
+                    const b = persPickSets[j];
+                    if (b.size === 0) continue;
+                    let inter = 0;
+                    a.forEach(w => { if (b.has(w)) inter++; });
+                    const uni = a.size + b.size - inter;
+                    const jac = uni ? (inter / uni) : 0;
+                    if (jac > 0) pairs.push({ source: i, target: j, shared: inter, jac });
+                }
+            }
+            pairs.sort((a, b) => b.jac - a.jac);
+            const TOP_EDGES = 80;
+            const links = pairs.slice(0, TOP_EDGES).map(p => Object.assign({}, p));
+
+            const nodes = allPeople.map((name, i) => ({
+                id: i,
+                name: pn(i),
+                total: persPickSets[i].size,
+                dojo: personToDojo[i],
+                color: dojoColors[personToDojo[i]] || '#888'
+            }));
+
+            document.getElementById('stats').textContent = `相関図 25名 / 上位${links.length}ペア（Jaccard類似度）`;
+
+            // Render container
+            container.innerHTML =
+                profileSubToggleHTML() +
+                '<div class="ranking-eyebrow">PEOPLE NETWORK</div>' +
+                '<div class="ranking-header">人物相関図</div>' +
+                `<div class="ranking-sub">　25名の中でJaccard類似度の上位${links.length}ペアを線で接続。線の太さ＝類似度。同色＝同道場。クリックで個別ビューへ。</div>` +
+                '<div id="correlation-wrap"><svg id="correlation-svg"></svg>' +
+                buildCorrelationLegendHTML() +
+                '</div>';
+            attachSubModeHandlers();
+
+            // Draw
+            const wrap = document.getElementById('correlation-wrap');
+            const w = wrap.clientWidth;
+            const h = wrap.clientHeight;
+            const svg = d3.select('#correlation-svg').attr('viewBox', `0 0 ${w} ${h}`);
+            svg.selectAll('*').remove();
+            if (correlationSim) correlationSim.stop();
+            const tooltip = d3.select('#tooltip');
+
+            const g = svg.append('g');
+            svg.call(d3.zoom().scaleExtent([0.3, 4]).on('zoom', ({transform}) => g.attr('transform', transform)));
+
+            const sim = d3.forceSimulation(nodes)
+                .force('link', d3.forceLink(links).id(d => d.id)
+                    .distance(d => 50 + (1 - d.jac) * 140)
+                    .strength(d => Math.min(0.9, d.jac * 3)))
+                .force('charge', d3.forceManyBody().strength(-350))
+                .force('center', d3.forceCenter(w/2, h/2))
+                .force('collide', d3.forceCollide().radius(d => Math.sqrt(d.total)*0.45 + 22));
+            correlationSim = sim;
+
+            const link = g.append('g').selectAll('line').data(links).join('line')
+                .attr('class', 'person-link')
+                .attr('stroke-opacity', d => 0.15 + d.jac * 2.5)
+                .attr('stroke-width', d => 0.4 + d.jac * 12);
+
+            const node = g.append('g').selectAll('g').data(nodes).join('g')
+                .attr('class', 'person-node')
+                .style('cursor', 'pointer')
+                .style('opacity', d => isFiltered && !filterIdxSet.has(d.id) ? 0.25 : 1)
+                .on('click', (e, d) => {
+                    profileDetailIdx = d.id;
+                    renderGraph();
+                    document.getElementById('map-container').scrollTop = 0;
+                })
+                .on('mouseover', (e, d) => {
+                    tooltip.style('opacity', 1)
+                        .html(`<b>${escapeHtml(d.name)}</b><br>${escapeHtml(d.dojo || '—')}<br>総ピック: ${d.total}語<br><span style="opacity:0.7;font-size:11px;">クリックで詳細</span>`)
+                        .style('left', (e.pageX + 12) + 'px')
+                        .style('top', (e.pageY - 10) + 'px');
+                })
+                .on('mousemove', e => {
+                    tooltip.style('left', (e.pageX + 12) + 'px').style('top', (e.pageY - 10) + 'px');
+                })
+                .on('mouseout', () => tooltip.style('opacity', 0))
+                .call(personDrag(sim));
+
+            node.append('circle')
+                .attr('r', d => Math.sqrt(d.total)*0.45 + 7)
+                .attr('fill', d => d.color)
+                .attr('stroke', '#fff')
+                .attr('stroke-width', 2);
+
+            node.append('text')
+                .attr('dx', d => Math.sqrt(d.total)*0.45 + 10)
+                .attr('dy', 4)
+                .text(d => d.name);
+
+            sim.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+                node.attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+        }
+
+        function buildCorrelationLegendHTML() {
+            let html = '<div class="correlation-legend"><div style="font-size:9px;letter-spacing:0.4em;color:var(--vermilion);font-weight:700;margin-bottom:5px;">DOJO</div>';
+            dojos.forEach(d => {
+                const c = dojoColors[d.name] || '#888';
+                html += `<div class="row"><span class="swatch" style="background:${c}"></span>${escapeHtml(d.name.replace('道場',''))}</div>`;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        function personDrag(sim) {
+            return d3.drag()
+                .on('start', e => { if (!e.active) sim.alphaTarget(0.3).restart(); e.subject.fx = e.subject.x; e.subject.fy = e.subject.y; })
+                .on('drag', e => { e.subject.fx = e.x; e.subject.fy = e.y; })
+                .on('end', e => { if (!e.active) sim.alphaTarget(0); e.subject.fx = null; e.subject.fy = null; });
+        }
+
+        // ========== 語×人 二部ネットワーク (bipartite person-keyword network) ==========
+        function renderProfileBipartite(sel) {
+            const container = document.getElementById('ranking-view');
+            document.getElementById('title-display').textContent = '個人プロフィール ／ 語×人ネットワーク';
+            const isFiltered = sel.kind === 'dojo';
+            const filterIdxSet = isFiltered ? sel.set : null;
+
+            // Aggregate: pick top-K most-shared words (across all nights, combined merged data)
+            const merged = buildMergedAll();
+            // Only keywords (group 1) + newwords (group 3) to limit visual noise; skip hotwords (group 2)
+            const candidates = merged.nodes.filter(n => visibleGroups.has(n.group));
+            // Sort by val desc, take top N
+            const TOP_WORDS = 35;
+            candidates.sort((a, b) => b.val - a.val);
+            const topWords = candidates.slice(0, TOP_WORDS);
+
+            // Build nodes: persons + keywords
+            const personNodes = allPeople.map((name, i) => ({
+                kind: 'person',
+                id: `p${i}`,
+                pIdx: i,
+                name: pn(i),
+                dojo: personToDojo[i],
+                color: dojoColors[personToDojo[i]] || '#888',
+                radius: 8
+            }));
+            const wordNodes = topWords.map(w => ({
+                kind: 'word',
+                id: `w${w.id}`,
+                wid: w.id,
+                group: w.group,
+                val: w.val,
+                color: w.group === 1 ? '#b8392a' : (w.group === 3 ? '#4f7b4f' : '#2a4c6b'),
+                radius: 4 + Math.sqrt(w.val) * 1.5
+            }));
+            const nodes = personNodes.concat(wordNodes);
+
+            // Build links: person → word if that person picked that word
+            const links = [];
+            wordNodes.forEach(wn => {
+                const origNode = topWords.find(t => t.id === wn.wid);
+                origNode.persons.forEach(pi => {
+                    if (isFiltered && !filterIdxSet.has(pi)) return;
+                    links.push({ source: `p${pi}`, target: wn.id });
+                });
+            });
+
+            document.getElementById('stats').textContent =
+                `語×人 ${personNodes.length}人 × ${wordNodes.length}語 / ${links.length}本のつながり${isFiltered ? `（${sel.label}）` : ''}`;
+
+            container.innerHTML =
+                profileSubToggleHTML() +
+                '<div class="ranking-eyebrow">PERSON × KEYWORD</div>' +
+                '<div class="ranking-header">語×人ネットワーク</div>' +
+                `<div class="ranking-sub">　25名（道場色）と頻出語${wordNodes.length}語を、選んだ関係で接続した二部ネットワーク。語のサイズ＝人数。人物クリックで個別ビューへ。</div>` +
+                '<div id="correlation-wrap"><svg id="correlation-svg"></svg>' +
+                buildCorrelationLegendHTML() +
+                '</div>';
+            attachSubModeHandlers();
+
+            const wrap = document.getElementById('correlation-wrap');
+            const w = wrap.clientWidth;
+            const h = wrap.clientHeight;
+            const svg = d3.select('#correlation-svg').attr('viewBox', `0 0 ${w} ${h}`);
+            svg.selectAll('*').remove();
+            if (bipartiteSim) bipartiteSim.stop();
+            const tooltip = d3.select('#tooltip');
+
+            const g = svg.append('g');
+            svg.call(d3.zoom().scaleExtent([0.2, 4]).on('zoom', ({transform}) => g.attr('transform', transform)));
+
+            const sim = d3.forceSimulation(nodes)
+                .force('link', d3.forceLink(links).id(d => d.id).distance(70).strength(0.4))
+                .force('charge', d3.forceManyBody().strength(-180))
+                .force('center', d3.forceCenter(w/2, h/2))
+                .force('collide', d3.forceCollide().radius(d => d.radius + 14));
+            bipartiteSim = sim;
+
+            const link = g.append('g').selectAll('line').data(links).join('line')
+                .attr('stroke', '#999')
+                .attr('stroke-opacity', 0.18)
+                .attr('stroke-width', 0.7);
+
+            const node = g.append('g').selectAll('g').data(nodes).join('g')
+                .attr('class', d => 'person-node' + (d.kind === 'word' ? ' word-node' : ''))
+                .style('cursor', d => d.kind === 'person' ? 'pointer' : 'default')
+                .style('opacity', d => isFiltered && d.kind === 'person' && !filterIdxSet.has(d.pIdx) ? 0.25 : 1)
+                .on('click', (e, d) => {
+                    if (d.kind === 'person') {
+                        profileDetailIdx = d.pIdx;
+                        renderGraph();
+                        document.getElementById('map-container').scrollTop = 0;
+                    }
+                })
+                .on('mouseover', (e, d) => {
+                    let html;
+                    if (d.kind === 'person') {
+                        html = `<b>${escapeHtml(d.name)}</b><br>${escapeHtml(d.dojo || '—')}<br><span style="opacity:0.7;font-size:11px;">クリックで詳細</span>`;
+                    } else {
+                        html = `<b>${escapeHtml(d.wid)}</b><br>${d.val}人が選択`;
+                    }
+                    tooltip.style('opacity', 1).html(html)
+                        .style('left', (e.pageX + 12) + 'px')
+                        .style('top', (e.pageY - 10) + 'px');
+                })
+                .on('mousemove', e => {
+                    tooltip.style('left', (e.pageX + 12) + 'px').style('top', (e.pageY - 10) + 'px');
+                })
+                .on('mouseout', () => tooltip.style('opacity', 0))
+                .call(personDrag(sim));
+
+            node.append('circle')
+                .attr('r', d => d.radius)
+                .attr('fill', d => d.color)
+                .attr('stroke', d => d.kind === 'person' ? '#fff' : '#fff')
+                .attr('stroke-width', d => d.kind === 'person' ? 2 : 1.5);
+
+            node.append('text')
+                .attr('dx', d => d.radius + 4)
+                .attr('dy', 3.5)
+                .style('font-size', d => d.kind === 'person' ? '12px' : '11px')
+                .style('font-weight', d => d.kind === 'person' ? '700' : '600')
+                .style('fill', d => d.kind === 'person' ? 'var(--ink)' : 'var(--ink-soft)')
+                .text(d => d.kind === 'person' ? d.name : d.wid);
+
+            sim.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+                node.attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+        }
 
         // ========== 編集方針 (5道場×5箇条) ==========
         function renderPrinciples() {
@@ -2529,7 +2910,7 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
                     if (personsToShow && personsToShow.length) {
                         const names = personsToShow.map(i => {
                             const dj = personToDojo[i];
-                            return dj ? `${allPeople[i]}(${dj.charAt(0)})` : allPeople[i];
+                            return dj ? `${pn(i)}(${dj.charAt(0)})` : pn(i);
                         });
                         if (names.length <= 8) {
                             html += `<br>選んだ人: ${names.join('、')}`;
