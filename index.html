@@ -1427,7 +1427,7 @@
         <div class="filter-group">
             <span class="filter-label">ビュー:</span>
             <button class="mode-btn active" data-mode="network">ネットワーク</button>
-            <button class="mode-btn" data-mode="ranking">ランキング</button>
+            <button class="mode-btn" data-mode="ranking">番付</button>
             <span class="divider" style="margin: 0 2px;"></span>
             <button class="mode-btn" data-mode="threadwords">貫通語</button>
             <button class="mode-btn" data-mode="newwords">ニューワード</button>
@@ -1933,13 +1933,13 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
             }).slice(0, 60);
 
             document.getElementById('title-display').textContent =
-                `貫通語ランキング ／ 夜をまたいで選ばれた語${isFiltered ? `（${sel.label}）` : ''}`;
+                `貫通語番付 ／ 夜をまたいで選ばれた語${isFiltered ? `（${sel.label}）` : ''}`;
             document.getElementById('stats').textContent =
                 `貫通語 上位${sorted.length}語${isFiltered ? `　・ ${sel.label}` : ''}`;
 
             let html = '<div class="thread-list">';
             html += '<div class="ranking-eyebrow">CROSS-NIGHT WORDS</div>';
-            html += '<div class="ranking-header">貫通語ランキング</div>';
+            html += '<div class="ranking-header">貫通語番付</div>';
             html += `<div class="ranking-sub">　10夜のうち何夜にまたがって選ばれたか。同夜数なら出現人数の多い順。</div>`;
             if (sorted.length === 0) {
                 html += '<div class="ranking-empty">該当する語がありません</div>';
@@ -2297,7 +2297,7 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
 
             html += '<div class="profile-section">';
             html += '<div class="section-eyebrow">RESONANCE</div>';
-            html += '<h3>共鳴ランキング</h3>';
+            html += '<h3>共鳴番付</h3>';
             html += '<div class="section-sub">Jaccard類似度の高い順 上位10名（同点時は共有語数）</div>';
             if (topResonance.length === 0) {
                 html += '<div style="color:var(--ink-faint);font-size:12px">該当者なし</div>';
