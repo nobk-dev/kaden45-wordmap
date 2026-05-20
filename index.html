@@ -938,6 +938,160 @@
             width: 11px; height: 11px; border-radius: 50%;
         }
 
+        /* ── Fortune (占い) view ─────────────────────── */
+        .fortune-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+            gap: 14px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .fortune-card {
+            border: 1px solid var(--rule);
+            border-top: 4px solid var(--vermilion);
+            padding: 14px 16px 16px;
+            background: var(--paper-soft);
+            font-family: var(--serif-jp);
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 6px 14px;
+        }
+        .fortune-avatar {
+            grid-row: 1 / span 2;
+            width: 100px; height: 76px;
+            border: 1.5px solid #1a1a1a;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Helvetica Neue', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a1a;
+            text-align: center;
+            line-height: 1.15;
+            letter-spacing: -0.3px;
+            padding: 4px 6px;
+            box-sizing: border-box;
+            overflow: hidden;
+            position: relative;
+        }
+        .fortune-avatar .kaomoji-elem {
+            position: absolute;
+            bottom: 2px;
+            right: 5px;
+            font-size: 9px;
+            color: rgba(26,26,26,0.55);
+            font-family: var(--serif-jp);
+            font-weight: 800;
+            letter-spacing: 0;
+        }
+        .fortune-name {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--ink);
+            letter-spacing: 0.04em;
+            margin-top: 2px;
+        }
+        .fortune-dojo {
+            font-size: 10px;
+            letter-spacing: 0.3em;
+            color: var(--vermilion);
+            font-weight: 700;
+            text-indent: 0.3em;
+        }
+        .fortune-type-element {
+            grid-column: 2;
+            display: flex; gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 2px;
+        }
+        .fortune-type {
+            background: var(--ink);
+            color: var(--paper);
+            padding: 2px 9px 3px;
+            font-weight: 700;
+            font-size: 11px;
+            font-family: var(--serif-jp);
+            letter-spacing: 0.08em;
+        }
+        .fortune-element {
+            font-size: 11px;
+            color: var(--vermilion);
+            font-weight: 700;
+            font-family: var(--serif-jp);
+            letter-spacing: 0.1em;
+        }
+        .fortune-catch {
+            grid-column: 1 / -1;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--ink);
+            line-height: 1.5;
+            letter-spacing: 0.05em;
+            border-left: 3px solid var(--vermilion);
+            padding: 4px 0 4px 10px;
+            margin-top: 4px;
+        }
+        .fortune-body {
+            grid-column: 1 / -1;
+            font-size: 12px;
+            color: var(--ink-soft);
+            line-height: 1.85;
+            letter-spacing: 0.04em;
+            font-family: var(--serif-jp);
+        }
+        .fortune-lucky {
+            grid-column: 1 / -1;
+            padding: 7px 10px;
+            background: var(--paper);
+            border: 1px dashed var(--rule);
+            font-size: 11px;
+            font-family: var(--serif-jp);
+        }
+        .fortune-lucky .label {
+            color: var(--vermilion);
+            font-weight: 800;
+            margin-right: 10px;
+            font-size: 10px;
+            letter-spacing: 0.25em;
+            text-indent: 0.25em;
+        }
+        .fortune-lucky .words {
+            color: var(--ink);
+            font-weight: 700;
+            font-size: 12px;
+        }
+        .fortune-row {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--ink-mute);
+            padding-top: 6px;
+            border-top: 1px dotted var(--rule-soft);
+        }
+        .fortune-row > div { display: flex; align-items: baseline; }
+        .fortune-row .lbl {
+            color: var(--vermilion);
+            letter-spacing: 0.2em;
+            margin-right: 8px;
+            font-weight: 700;
+            font-size: 9.5px;
+            font-family: var(--serif-jp);
+            text-indent: 0.2em;
+            min-width: 60px;
+        }
+        .fortune-row .val {
+            color: var(--ink);
+            font-family: var(--serif-jp);
+            font-weight: 700;
+            font-size: 11.5px;
+            line-height: 1.5;
+        }
+
         /* ── Profile detail (individual deep-dive) ───── */
         .profile-card { cursor: pointer; }
         .profile-card:hover { box-shadow: 3px 3px 0 var(--vermilion-bg); transform: translateY(-1px); }
@@ -2065,13 +2219,13 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
 
         // ========== 個人プロフィール (dispatcher + grid + detail + correlation + bipartite) ==========
         let profileDetailIdx = null;
-        let profileSubMode = 'grid';  // 'grid' | 'correlation' | 'bipartite'
+        let profileSubMode = 'grid';  // 'grid' | 'correlation' | 'bipartite' | 'fortune'
         let correlationSim = null;
         let bipartiteSim = null;
 
         function profileSubToggleHTML() {
             const btn = (mode, label) => `<button class="submode-btn ${profileSubMode===mode?'active':''}" data-submode="${mode}">${label}</button>`;
-            return `<div class="profile-submode-toggle">${btn('grid','一覧')}${btn('correlation','相関図')}${btn('bipartite','語×人')}</div>`;
+            return `<div class="profile-submode-toggle">${btn('grid','一覧')}${btn('correlation','相関図')}${btn('bipartite','語×人')}${btn('fortune','占い')}</div>`;
         }
         function attachSubModeHandlers() {
             document.querySelectorAll('.submode-btn').forEach(btn => {
@@ -2118,6 +2272,8 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
                 renderProfileCorrelation(sel);
             } else if (profileSubMode === 'bipartite') {
                 renderProfileBipartite(sel);
+            } else if (profileSubMode === 'fortune') {
+                renderProfileFortune(sel);
             } else {
                 renderProfileGrid(sel);
             }
@@ -2649,6 +2805,102 @@ const graphData = {"夜1":{"title":"夜1 １）1409夜『＜弱さ＞のちか�
                 node.attr('transform', d => `translate(${d.x},${d.y})`);
             });
         }
+
+
+        // ========== 占い (fortune view) ==========
+        // ---- personalities (pre-generated by agent) ----
+const personalities = {"朝比奈励": {"type": "繋ぎ型", "catch": "存在を贈りあう、橋渡しの編集者", "body": "あなたの編集は『弱さ』を入口に他者の感情を預かる柔らかさを持っています。却来とバルネラビリティを愛し、シャペロンのようにそっと寄り添う気質。ひりひりした気持ちやおぼつかなさを抱えた人のかたわらに居合わせる才があり、相転移の瞬間を逃さず掬い取るセンサーが内に育っています。世界の入り口は、その手のひらから開かれるでしょう。", "luckyWords": ["シャペロン", "親友", "言語の際"], "challenge": "おぼつかなさを抱えたまま、まず一歩を踏み出してみる", "compatibility": "倉田 憲多", "element": "水"}, "倉田 憲多": {"type": "創造型", "catch": "意味の奥へ奥へと潜る、水先案内人", "body": "あなたの編集には『鏡鳴』や『未完の美』のように、響きと余白を孕んだ造語が宿っています。アナロジーとバルネラビリティを軸に、対象や意味の奥へと相手を引き込む水先案内人の気質。多形倒錯やあいだといった少数派の言葉に手を伸ばす感性は、衝動誘発の編集力となって意味のメタモルフォーゼを起こすでしょう。", "luckyWords": ["鏡鳴", "未完の美", "電撃直感"], "challenge": "奥へ潜るだけでなく、ふと水面に浮かんで光を浴びてみる", "compatibility": "馬渕雄一郎", "element": "水"}, "笠井麻代": {"type": "独歩型", "catch": "ジグザグ道を歩む、未生の模様の探検家", "body": "あなたの編集はuniqueな語が76と高く、独自の水脈で歩む人。『泡』や『世界制作』を起点に、『刃物研ぎと不揃いの木』『情報の目と翅による主客交差点』といった大胆で詩的な造語を編み出します。幽い淵境目に立ち、関係性に可能性を見出す眼差し。あなたが歩いた跡が、そのまま未生の道になっていくでしょう。", "luckyWords": ["未生の模様への千夜の援軍", "梵我一如の知的連爆", "幽い淵境目"], "challenge": "ひとりの道に、ときには誰かを並走させてみる", "compatibility": "帆良邦子", "element": "風"}, "馬野 友之": {"type": "統合型", "catch": "弱さの力をうたう、阿修羅のインタースコア", "body": "あなたの編集はkeyword・hotword・newwordの三カテゴリがバランスよく息づく統合型。手考足思とアナロジー、対称性の破れを軸に、『無碍の鍵穴』や『好奇心の飛翔隊』といった躍動感ある造語を放ちます。弱さの力や有文と無文といった『あいだ』の言葉を大切にし、コンパイルとエディットを共鳴させる多動なカメレオン気質が光っています。", "luckyWords": ["阿修羅インタースコア", "好奇心の飛翔隊", "無碍の鍵穴"], "challenge": "多方向に翔ぶ翼を、ときには一点に降ろして根を張る", "compatibility": "馬渕雄一郎", "element": "木"}, "小池信孝": {"type": "独歩型", "catch": "ネガティブケイパビリティの編集大陸", "body": "あなたのピック語は296、unique177と圧倒的な水脈の広さ。『つなぎ学』『フラジリティ』を軸に、『花を伝う所にて』『ぼくたちの編集工学』『WILLネットワーク』など編集思想そのものを編み直す造語を生みます。もどかしい声援や断線した心を見過ごさない眼差しは、ネガティブケイパビリティのある国を編み出す種となるでしょう。", "luckyWords": ["ネガティブケイパビリティがある国", "花を伝う所にて", "無常開闢"], "challenge": "広大な編集大陸の中央に、ふと小さな一灯を灯してみる", "compatibility": "竹廣　克", "element": "土"}, "馬渕雄一郎": {"type": "創造型", "catch": "臨界をすくう掌、踊る編集ポップコーン", "body": "あなたの編集は『臨界を救う掌』『ツバメの円舞』『響読コンサートホール』など、軽やかさと深さを併せ持つ造語が光ります。却来とアナロジーとヴァージョンを愛し、生者と死者が同居する世界、やってくる機と迎える機を見逃さない。逸脱を受け止める蜘蛛の巣のような器で、不滅の編集二十面相として周りに変容をもたらすでしょう。", "luckyWords": ["臨界を救う掌", "踊る編集ポップコーン", "響読コンサートホール"], "challenge": "二十面相のひとつを脱ぎ捨てて、素顔の編集と出会ってみる", "compatibility": "馬野 友之", "element": "火"}, "根井真美": {"type": "繋ぎ型", "catch": "読々毛細血管をめぐる、間柄の文通相手", "body": "あなたの編集はhotwordが146と豊富で、アナロジー・システム・世界制作という大きな柱を軸に、『間柄的文通相手』『読々毛細血管』『別様のグルー』といった繋ぎ手の造語を放ちます。ミラーリングや通気、ホスピタリティといった気配の語に触れる感性は、類友システムをそっと育む器。あなたの編集はやがて誰かのケアになっていくでしょう。", "luckyWords": ["読々毛細血管", "間柄的文通相手", "別様のグルー"], "challenge": "毛細血管の先で、自分自身のために一滴使ってみる", "compatibility": "馬渕雄一郎", "element": "水"}, "田中　大介": {"type": "独歩型", "catch": "大河宇宙を旅する、多義存在のWill", "body": "あなたの編集はuniqueが128と独自路線が太く、却来・アナロジー・ヴァージョンを軸に、『大河宇宙に生息する多義存在』『さがしさがされ旅するWill』『フィールドリズムオートファジー』など世界の規模で響く造語を生みます。傷や呪縛、自分の端緒を真正面から見据える勇気は、世継ぎとしての編集の覚悟を映しているでしょう。", "luckyWords": ["大河宇宙に生息する多義存在", "さがしさがされ旅するWill", "言の葉サウナ"], "challenge": "大河の流れを離れて、小さな水たまりにも目を留めてみる", "compatibility": "馬渕雄一郎", "element": "火"}, "浦部光俊": {"type": "求道型", "catch": "羽化した蝶は一人で飛ばない、共在の編集", "body": "あなたの編集は語数を絞り込み、却来とアナロジーと対称性の破れを軸に少数精鋭で深く掘り下げる気質。『羽化した蝶は一人で飛ばない』『却来とは芸のコペルニクス転回』『泥沼に咲く蓮』など、芸の本質を射抜く造語を編みます。かたわらに居合わせること、是風が非風を包むという視座は、不揃いの木を組む棟梁の手つきを湛えているでしょう。", "luckyWords": ["羽化した蝶は一人で飛ばない", "是風が非風を包む", "不揃いの木を組む"], "challenge": "求道の杖を一度置いて、軽やかな寄り道を楽しんでみる", "compatibility": "竹廣　克", "element": "金"}, "高橋仁美": {"type": "統合型", "catch": "崩れた豆腐を掬う掌、編集職人の眼差し", "body": "あなたの編集は却来・アナロジー・離見の見・システム・弱さと多方向にバランスよく開きながら、『崩れた豆腐を掬う掌』『判定ではなく察知するカマエ』『詩的理論物理学のススメ』といった職人の温度を宿す造語を編みます。丹念に拾い、かけがえのない言葉を掬っていく姿勢は、答えのない問いを模索する読者への手紙となるでしょう。", "luckyWords": ["崩れた豆腐を掬う掌", "判定ではなく察知するカマエ", "詩的理論物理学のススメ"], "challenge": "察知の細やかさを保ちつつ、ときに大胆な断定で世界を切ってみる", "compatibility": "竹廣　克", "element": "土"}, "松本智子": {"type": "求道型", "catch": "確かな下地を信じる、継続の編集者", "body": "あなたの編集は語数を絞り、ヴァージョン・古を稽える・弱さの力の可能性・言葉の力・技を磨くを軸に、一道を深く歩む求道型。『弱さ儚さを抱きしめる』『確かな下地は裏切らない』『継続を諦めない』といった造語には、プロセスをひたすら習熟する者の静かな炎が宿ります。古そのものに学ぶ姿は、自身の端緒を更新し続けるでしょう。", "luckyWords": ["確かな下地は裏切らない", "弱さ儚さを抱きしめる", "蓄積と放出"], "challenge": "下地の確かさに甘えず、ときには未踏の領域に飛び込んでみる", "compatibility": "竹廣　克", "element": "土"}, "河田桃子": {"type": "創造型", "catch": "うつろう劇場で、火の鳥を探す", "body": "あなたの編集はヴァージョンや存在を贈りあう関係を軸に、『創造の庭』『火の鳥を探す』『曜変に首を突っ込む』『うつろう劇場』『ひらめきのカタチ』など、詩的でビジュアルな造語が次々と咲きます。強さを求めず、おほつかなさの重要性を知る感性は、傷から垣間見ることのできる器量。依憑になる覚悟を秘めた編集者です。", "luckyWords": ["火の鳥を探す", "うつろう劇場", "曜変に首を突っ込む"], "challenge": "ひらめきの庭に、長く居続ける根気をひと粒", "compatibility": "杉田裕紀", "element": "火"}, "湯山　聡": {"type": "独歩型", "catch": "丑三つ時の学舎に灯る、もどき探検部の隊長", "body": "あなたの編集はnewwordが20語と他の倍、uniqueも106と圧倒的に独歩。『丑三つ時の学舎』『依りあけ』『弱さすさぶ靭性劇場』『じゃれあう情報雑草ネットワーク』など、誰も歩いていない言語の藪を切り拓く造語が次々と湧き出します。死があるのに遺体が見えない社会を見据える眼差しは、ミクロの戦慄とマクロの平穏を同時に抱える稀有な編集気質。", "luckyWords": ["丑三つ時の学舎", "もどき探検部", "振り返る暗闇に希実あり"], "challenge": "言葉の藪を切り拓いた後、誰かと一緒に歩ける道に均してみる", "compatibility": "竹廣　克", "element": "風"}, "竹廣　克": {"type": "繋ぎ型", "catch": "網目としてのわたし、ゆらがせ屋の編集者", "body": "あなたの編集は却来・アナロジー・梵我一如・フラジャイル・離見の見と多方向に開きながら、『幽玄交感』『心を今に置く』『自分と世界の編み継ぎ』『ゆらがせ屋』『弱さエンジン』といった繋ぎの妙を生みます。そこいてくれることや必要な世話を見つめる感性は、提供と交感の境界を知る人の眼差し。網目としてのあなたが、虎のバターになる覚悟を秘めています。", "luckyWords": ["ゆらがせ屋", "幽玄交感", "網目としてのわたし"], "challenge": "繋ぐ網目のひとつに、自分自身を強く結びつけてみる", "compatibility": "馬野 友之", "element": "木"}, "関端彰子": {"type": "独歩型", "catch": "縁と縁のあいだを泳ぐ、やじろべえの重心", "body": "あなたの編集は総ピック407、unique222と圧倒的なボリュームと独自性を併せ持つ。アナロジー・ヴァージョン・システム・弱さ・世界制作という大柱に、『隣に座る』『古の花を咲かせ新しき風で揺らす』『縁と縁のあいだを泳ぐ』『私がわたしを差し出す』を編みます。ヒリヒリした気持ちや哀歌や挽歌を抱える感性は、多様性の鬱屈を解く重心となるでしょう。", "luckyWords": ["縁と縁のあいだを泳ぐ", "やじろべえの重心", "私がわたしを差し出す"], "challenge": "差し出すわたしを抱きとめてくれる場に、自らも預けてみる", "compatibility": "竹廣　克", "element": "水"}, "永津洋之": {"type": "統合型", "catch": "曼荼羅とマンダラチャートで世を編む、超組織の旅人", "body": "あなたの編集はアナロジー・対称性の破れ・ヴァージョン・感情を預かる・システムを軸に、『超組織開発入門』『延命十句観音経の却来』『曼荼羅とマンダラチャート』『ホルムズ海峡の般若心経』など、ジャンルを横断する大胆な造語を編みます。存在の他者性や自由の現前性を見つめる眼差しは、存在を贈り合う関係を旅する者の地図となるでしょう。", "luckyWords": ["曼荼羅とマンダラチャート", "ホルムズ海峡の般若心経", "ゼロポイントエネルギーフィールドとわたし達"], "challenge": "壮大な地図を広げたら、足元の一歩にも目を落とす", "compatibility": "馬野 友之", "element": "風"}, "新倉美菜": {"type": "創造型", "catch": "二字の結晶を打ち出す、芯摯の編集者", "body": "あなたの編集はアナロジー・構成的方法・ヴァージョンを軸に、『受脆』『交堺』『芯摯』『組結』『揺律』『曖界』『連翔』『依織』『統響』『翻世』と、二字の漢字で世界を再結晶させる稀有な造語を編みます。他人の体験や感情や不安を受けとめそれを通していくという深い受容力は、感情を預かることのできる稀有な器。あなたの言葉は新たな漢語の地層をつくるでしょう。", "luckyWords": ["芯摯", "翻世", "連翔"], "challenge": "結晶のあいだに、ふと長い柔らかな散文を流してみる", "compatibility": "馬渕雄一郎", "element": "金"}, "平川英恵": {"type": "創造型", "catch": "螺旋のほどき方を知る、宇宙の微笑", "body": "あなたの編集は却来・無のゆらぎ・手考足思・構成的方法・関係子を軸に、『蔽綻』『日向の心と日陰の目』『螺旋のほどき方』『宇宙の微笑』『アナロジカルランド』『主虹と副虹の秤』など、相反するものを束ねる造語を編みます。生者と死者が同居する世界や、独自の多形倒錯を見据える眼差しは、児姿や童形がおのずからもつ花を慈しむまなざし。起源前という方法で、まことの花へ歩むでしょう。", "luckyWords": ["螺旋のほどき方", "宇宙の微笑", "主虹と副虹の秤"], "challenge": "螺旋のほどけ方に、ひと呼吸ゆるしてみる", "compatibility": "竹廣　克", "element": "火"}, "伊藤邦彦": {"type": "観察型", "catch": "親方の眼で熟成する、骨組みの編集者", "body": "あなたの編集はアナロジー・システム・弱さを軸に、『骨組み』『メタ認知』『奥義』『熟成』『調理』『かげろう』『物真似』など、地に足のついた一語の造語が並びます。型と型をいかにつなぐかを問い、注意のカーソルを確かめる姿勢、無骨な男たちと不揃いの木をまとめる腕っぷしへの注視は、棟梁的な観察眼の証。あなたの稽古は静かに熟成されていくでしょう。", "luckyWords": ["骨組み", "熟成", "奥義"], "challenge": "骨組みに、ときには遊びの装飾もまとわせてみる", "compatibility": "高橋仁美", "element": "土"}, "工藤洋子": {"type": "深堀り型", "catch": "編集の極致を稽える、不動への稽古道", "body": "あなたの編集はkeywordが30と圧倒的に多く、却来・アナロジー・構成的方法・関係子・泡を深く掘り下げる気質。『不動に至る稽古道』『編集の匠言葉の匠』『往きて来し方に戻るアナロジー』『編集の極致』など、一道を究める者の語彙が並びます。セレンディピティやノーテーションの工夫、魂理を見つめる眼差しは、境界を越えてつながる情報を活かす匠の手つき。", "luckyWords": ["不動に至る稽古道", "編集の極致", "魂理"], "challenge": "深く掘った井戸から、ときに地表へ顔を出して風を浴びる", "compatibility": "倉田 憲多", "element": "金"}, "帆良邦子": {"type": "受容型", "catch": "境界線なき世界に遊ぶ、連動交感の編集", "body": "あなたの編集は却来・梵我一如・場の情報・世界制作・編集装置を軸に、『弱さという基準』『型という財産』『番に遊ぶ』『連動交感』『境界線なき世界観』『分解再編』といった包容力ある造語を編みます。不安を受けとめそれを通していく姿勢、強さの欠如にあらずという視座は、有文と無文、時分の花と離見の見をともに抱える稀有な受容力。", "luckyWords": ["境界線なき世界観", "番に遊ぶ", "連動交感"], "challenge": "包む手のひらの内側に、自分の輪郭を一本引いてみる", "compatibility": "竹廣　克", "element": "木"}, "竹内瑛人": {"type": "繋ぎ型", "catch": "気候から生まれた編集、マイクロビッグバンの種", "body": "あなたの編集はアナロジー・相応成就・バルネラビリティ・システム・世界制作を軸に、『弱さの再結合』『相互循環』『芯師弟』『マイクロビッグバン』『パラレルシックスセンス』『気候から生まれた編集』『世界未だ制作中』など、繋ぎと結合の造語が光ります。日本の寺院ネットワークや生者と死者が同居していることへの眼差しは、存在を送りあう社会への深い祈り。", "luckyWords": ["マイクロビッグバン", "気候から生まれた編集", "パラレルシックスセンス"], "challenge": "繋ぐ手を止めて、ひとつの感覚にじっと滞在してみる", "compatibility": "倉田 憲多", "element": "木"}, "米澤志咲": {"type": "独歩型", "catch": "数寄から革命、思考の獣道に線を引く", "body": "あなたの編集は総ピック262、unique131と独歩の幅が広い。却来・手考足思・断片から総合へ・バルネラビリティ・ヴァージョンを軸に、『置き肖り子法師』『輪廻転道』『江戸っ子カタヌキ未来現在』『思考の獣道に線を引く』『曖昧の四次元すき間』『数寄から革命』など、ユーモアと深度を併せ持つ造語が並びます。叩きあい撫であい踊りあう世界観は、変態し続け世界と交差する編集者の姿。", "luckyWords": ["数寄から革命", "思考の獣道に線を引く", "曖昧の四次元すき間"], "challenge": "獣道に引いた線を、ときに消して別の動物の足跡にゆだねる", "compatibility": "倉田 憲多", "element": "風"}, "中村悠香": {"type": "受容型", "catch": "気持ちの繋ぎ手、境界芸術の織り手", "body": "あなたの編集はシステム・ボランティア・生きているという状態・技が磨かれ人が育っていく・宇宙を軸に、『気持ちの繋ぎ手』『境界芸術』『棟梁的人材育成』『異種接着学』『主体的自己犠牲』『総合芸術経典』など、繋ぐ・育てる・接着するという受容の造語が並びます。かけがえのない言葉を掬う姿勢、そこいてくれることへの感謝は、共同体の活動報告のように世界を編む眼差し。", "luckyWords": ["気持ちの繋ぎ手", "境界芸術", "異種接着学"], "challenge": "受け取り編む手のひらに、自分のための一席を残しておく", "compatibility": "朝比奈励", "element": "土"}, "杉田裕紀": {"type": "深堀り型", "catch": "大海原の北極星、伴走する野生のひまわり", "body": "あなたの編集はkeywordが71と群を抜いて多く、却来・無のゆらぎ・リメイク・アナロジー・相応成就を深く掘る求道の気質。『野生のひまわり』『大海原の北極星』『学びの作法』『花の咲く植物を育てる』『圧縮爆発』『伴走』など、シンプルで芯のある造語が並びます。棟梁の器量や星の爆発、必要な世話と余計な世話の違いを見据える眼差しは、深く掘る者だけが届く水脈に通じているでしょう。", "luckyWords": ["野生のひまわり", "大海原の北極星", "圧縮爆発"], "challenge": "深く掘った井戸に、ときには軽やかな遊びの石を投げ込んでみる", "compatibility": "馬野 友之", "element": "金"}};
+
+        // ---- Kaomoji avatar generator (deterministic from type + element + idx) ----
+        // 8 type bases × element variants × idx flips → 25人それぞれ違う顔文字
+        const KAOMOJI_TABLE = {
+            '深堀り型': ['(´-`).｡oO', '(´_ゝ｀)', '(˘・ω・˘ )', '( ˘•ω•˘ ).oO'],
+            '繋ぎ型':   ['(・ω・)ノ', '( ・ω・)つ―', 'ヽ(・∀・)ﾉ', '( ◜▿◝ )و'],
+            '創造型':   ['(ﾉ◕ヮ◕)ﾉ✧', '*ଘ(੭*ˊᵕˋ)੭*', '(ﾉ´ヮ`)ﾉ*:･ﾟ', '✧(•̀ᴗ•́)و✧'],
+            '観察型':   ['(◔_◔)?', '(◔‿◔)👀', '( ๑ŏ ﹏ ŏ๑ )', '(¬‿¬ )'],
+            '求道型':   ['(•̀ᴗ•́)b', '(-‸ლ)', '(￣ヘ￣)', '(•̀_•́ )'],
+            '受容型':   ['(´｡• ᵕ •｡`)', '(´｡•ᴗ•｡`)', '(◕‿◕✿)', '(｡♥‿♥｡)'],
+            '独歩型':   ['┐(￣ヘ￣)┌', '└(>ω<)┘', 'ヾ(⌐■_■)ノ', '┌(★o☆)┘'],
+            '統合型':   ['٩( ˘◡˘ )۶', 'ヾ(´︶`*)ﾉ♬', '(•ω•)و', '(´∀｀ʃƪ)']
+        };
+
+        function avatarHTML(idx, dojo, type, element) {
+            const dojoColor = dojoColors[dojo] || '#888';
+            const variants = KAOMOJI_TABLE[type] || ['(・ω・)'];
+            const kao = variants[idx % variants.length];
+            return `<div class="fortune-avatar" style="background:${dojoColor}">${escapeHtml(kao)}<span class="kaomoji-elem">${escapeHtml(element || '')}</span></div>`;
+        }
+
+        // ---- Fortune view render ----
+        function renderProfileFortune(sel) {
+            const container = document.getElementById('ranking-view');
+            document.getElementById('title-display').textContent = '個人プロフィール ／ 編集占い';
+            document.getElementById('stats').textContent = `編集占い 全${allPeople.length}名 ／ タイプ・五行・キャッチ・本文・ラッキー語・課題・相性`;
+
+            // Sort by dojo order, then by idx
+            const dojoOrder = dojos.map(d => d.name);
+            const sortedIdx = allPeople.map((_, i) => i).sort((a, b) => {
+                const da = personToDojo[a]; const db = personToDojo[b];
+                const ai = da ? dojoOrder.indexOf(da) : 999;
+                const bi = db ? dojoOrder.indexOf(db) : 999;
+                if (ai !== bi) return ai - bi;
+                return a - b;
+            });
+
+            let html = profileSubToggleHTML();
+            html += '<div class="ranking-eyebrow">EDITORIAL FORTUNE</div>';
+            html += '<div class="ranking-header">編集占い</div>';
+            html += '<div class="ranking-sub">　25名の編集気質を、選んだ語から読み解いた占い。</div>';
+            html += '<div class="fortune-grid">';
+
+            sortedIdx.forEach(idx => {
+                const name = allPeople[idx];
+                const display = pn(idx);
+                const dojo = personToDojo[idx];
+                // Lookup with whitespace tolerance
+                let p = personalities[name];
+                if (!p) {
+                    const normKey = name.replace(/[\s　]/g, '');
+                    for (const k of Object.keys(personalities)) {
+                        if (k.replace(/[\s　]/g, '') === normKey) { p = personalities[k]; break; }
+                    }
+                }
+                if (!p) return;
+
+                const avatar = avatarHTML(idx, dojo, p.type, p.element);
+                // Resolve compatibility name to display initial
+                let compatDisplay = p.compatibility || '—';
+                if (p.compatibility) {
+                    const cn = p.compatibility.replace(/[\s　]/g, '');
+                    const ci = allPeople.findIndex(n => n.replace(/[\s　]/g, '') === cn);
+                    if (ci >= 0) compatDisplay = pn(ci);
+                }
+
+                html += `<div class="fortune-card">`;
+                html += avatar;
+                html += `<div>`;
+                html += `<div class="fortune-name">${escapeHtml(display)}</div>`;
+                html += `<div class="fortune-dojo">${escapeHtml(dojo || '—')}</div>`;
+                html += `</div>`;
+                html += `<div class="fortune-type-element">`;
+                html += `<span class="fortune-type">${escapeHtml(p.type)}</span>`;
+                html += `<span class="fortune-element">五行：${escapeHtml(p.element)}</span>`;
+                html += `</div>`;
+                html += `<div class="fortune-catch">${escapeHtml(p.catch)}</div>`;
+                html += `<div class="fortune-body">${escapeHtml(p.body)}</div>`;
+                html += `<div class="fortune-lucky"><span class="label">ラッキー語</span><span class="words">${(p.luckyWords || []).map(w => escapeHtml(w)).join('　・　')}</span></div>`;
+                html += `<div class="fortune-row">`;
+                html += `<div><span class="lbl">今期の課題</span><span class="val">${escapeHtml(p.challenge)}</span></div>`;
+                html += `<div><span class="lbl">相性</span><span class="val">${escapeHtml(compatDisplay)}</span></div>`;
+                html += `</div>`;
+                html += `</div>`;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+            attachSubModeHandlers();
+        }
+
 
         // ========== 編集方針 (5道場×5箇条) ==========
         function renderPrinciples() {
